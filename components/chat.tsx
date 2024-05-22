@@ -37,32 +37,16 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   )
   const [previewTokenDialog, setPreviewTokenDialog] = useState(IS_PREVIEW)
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
-  const { messages, append, reload, stop, isLoading, input, setInput } =
-    useChat({
-      initialMessages,
-      id,
-      body: {
-        id,
-        previewToken
-      },
-      onResponse(response) {
-        if (response.status === 401) {
-          toast.error(response.statusText)
-        }
-      },
-      onFinish() {
-        if (!path.includes('chat')) {
-          window.history.pushState({}, '', `/chat/${id}`)
-        }
-      }
-    })
+  const { status, messages, input, submitMessage, handleInputChange, setInput } =
+    useAssistant({ api: '/api/chat' });
+  
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
         {messages.length ? (
           <>
             <ChatList messages={messages} />
-            <ChatScrollAnchor trackVisibility={isLoading} />
+            <ChatScrollAnchor trackVisibility={ status == 'in_progress' } />
           </>
         ) : (
           <EmptyScreen setInput={setInput} />
