@@ -11,10 +11,11 @@ import {
 } from '@/components/ui/tooltip'
 import { IconArrowElbow, IconPlus } from '@/components/ui/icons'
 import { useRouter } from 'next/navigation'
+import { FormEvent } from 'react'
 
 export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput'> {
-  onSubmit: (value: string) => void
+  onSubmit: (event?: FormEvent<HTMLFormElement> | undefined, requestOptions?: { data?: Record<string, string> | undefined; } | undefined) => Promise<void>
   isLoading: boolean
 }
 

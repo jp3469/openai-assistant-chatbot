@@ -1,6 +1,6 @@
 'use client'
 
-import { useChat, type Message } from 'ai/react'
+import { useAssistant, type Message } from 'ai/react'
 
 import { cn } from '@/lib/utils'
 import { ChatList } from '@/components/chat-list'
@@ -70,10 +70,9 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
       </div>
       <ChatPanel
         id={id}
-        isLoading={isLoading}
-        stop={stop}
-        append={append}
-        reload={reload}
+        status={status}
+        submitMessage={submitMessage} 
+        handleInputChange={handleInputChange}
         messages={messages}
         input={input}
         setInput={setInput}
