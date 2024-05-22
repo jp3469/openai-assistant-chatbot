@@ -1,65 +1,70 @@
-import { kv } from '@vercel/kv'
-import { OpenAIStream, StreamingTextResponse } from 'ai'
-import OpenAI from 'openai'
-
-import { auth } from '@/auth'
-import { nanoid } from '@/lib/utils'
-
-export const runtime = 'edge'
+import { AssistantResponse } from 'ai';
+import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-})
+  apiKey: process.env.OPENAI_API_KEY || '',
+});
 
 export async function POST(req: Request) {
-  const json = await req.json()
-  const { messages, previewToken } = json
-  const userId = (await auth())?.user.id
+  // Parse the request body
+  const input: {
+    threadId: string | null;
+    message: string;
+  } = await req.json();
 
-  if (!userId) {
-    return new Response('Unauthorized', {
-      status: 401
-    })
-  }
+  // Create a thread if needed
+  const threadId = input.threadId ?? (await openai.beta.threads.create({})).id;
 
-  if (previewToken) {
-    openai.apiKey = previewToken
-  }
+  // Add a message to the thread
+  const createdMessage = await openai.beta.threads.messages.create(threadId, {
+    role: 'user',
+    content: input.message,
+  });
 
-  const res = await openai.chat.completions.create({
-    model: 'gpt-3.5-turbo',
-    messages,
-    temperature: 0.7,
-    stream: true
-  })
+  return AssistantResponse(
+    { threadId, messageId: createdMessage.id },
+    async ({ forwardStream, sendDataMessage }) => {
+      // Run the assistant on the thread
+      const runStream = openai.beta.threads.runs.stream(threadId, {
+        assistant_id:
+          process.env.ASSISTANT_ID ??
+          (() => {
+            throw new Error('ASSISTANT_ID is not set');
+          })(),
+      });
 
-  const stream = OpenAIStream(res, {
-    async onCompletion(completion) {
-      const title = json.messages[0].content.substring(0, 100)
-      const id = json.id ?? nanoid()
-      const createdAt = Date.now()
-      const path = `/chat/${id}`
-      const payload = {
-        id,
-        title,
-        userId,
-        createdAt,
-        path,
-        messages: [
-          ...messages,
-          {
-            content: completion,
-            role: 'assistant'
-          }
-        ]
+      // forward run status would stream message deltas
+      let runResult = await forwardStream(runStream);
+
+      // status can be: queued, in_progress, requires_action, cancelling, cancelled, failed, completed, or expired
+      while (
+        runResult?.status === 'requires_action' &&
+        runResult.required_action?.type === 'submit_tool_outputs'
+      ) {
+        const tool_outputs =
+          runResult.required_action.submit_tool_outputs.tool_calls.map(
+            (toolCall: any) => {
+              const parameters = JSON.parse(toolCall.function.arguments);
+
+              switch (toolCall.function.name) {
+                // configure your tool calls here
+
+                default:
+                  throw new Error(
+                    `Unknown tool call function: ${toolCall.function.name}`,
+                  );
+              }
+            },
+          );
+
+        runResult = await forwardStream(
+          openai.beta.threads.runs.submitToolOutputsStream(
+            threadId,
+            runResult.id,
+            { tool_outputs },
+          ),
+        );
       }
-      await kv.hmset(`chat:${id}`, payload)
-      await kv.zadd(`user:chat:${userId}`, {
-        score: createdAt,
-        member: `chat:${id}`
-      })
-    }
-  })
-
-  return new StreamingTextResponse(stream)
+    },
+  );
 }
