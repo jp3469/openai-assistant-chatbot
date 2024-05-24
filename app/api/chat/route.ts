@@ -1,11 +1,14 @@
-import { AssistantResponse } from 'ai';
+import { AssistantResponse, tool } from 'ai';
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
 });
 
+const yelp_api_key = process.env.OPENAI_API_KEY
+
 export async function POST(req: Request) {
+  
   // Parse the request body
   const input: {
     threadId: string | null;
@@ -54,7 +57,12 @@ export async function POST(req: Request) {
               } else if (toolCall.function.name === 'getRainProbability') {
                 return {
                   tool_call_id: toolCall.id,
-                  output: "57",
+                  output: "0.06",
+                }
+              } else if (toolCall.function.name === 'getRestaurant') {
+                return {
+                  tool_call_id: toolCall.id,
+                  output: getRestaurant(parameters.location),
                 }
               }
                 // configure your tool calls here
@@ -88,4 +96,20 @@ export async function POST(req: Request) {
       }
     },
   );
+}
+
+function getRestaurant(location: string): string {
+ 
+  const yelp = require('yelp-fusion');
+  const client = yelp.client(yelp_api_key);
+  
+  client.search({
+    term: 'restaurant',
+    location: location,
+  }).then((response: { jsonBody: { businesses: { name: string; }[]; }; }) => {
+    return response.jsonBody.businesses[0].name;
+  }).catch((e: any) => {
+    console.log(e);
+  });
+  return "";
 }

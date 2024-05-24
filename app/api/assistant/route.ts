@@ -51,6 +51,23 @@ export async function updateAssistant() {
             },
             },
         },
+        {
+            type: "function",
+            function: {
+            name: "getRestaurant",
+            description: "Return one restaurant near location",
+            parameters: {
+                type: "object",
+                properties: {
+                location: {
+                    type: "string",
+                    description: "The city and state, e.g., San Francisco, CA",
+                },
+                },
+                required: ["location"],
+            },
+            },
+        }
         ],
     });
 }
