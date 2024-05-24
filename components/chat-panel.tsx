@@ -8,6 +8,7 @@ import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
 import { IconRefresh, IconShare, IconStop } from '@/components/ui/icons'
 import { FooterText } from '@/components/footer'
 import { ChatShareDialog } from '@/components/chat-share-dialog'
+import FileViewer from '@/components/file-viewer'
 
 export interface ChatPanelProps
   extends Pick<
@@ -78,6 +79,7 @@ export function ChatPanel({
           )}
         </div>
         <div className="px-4 py-2 space-y-4 border-t shadow-lg bg-background sm:rounded-t-xl sm:border md:py-4">
+          <FileViewer></FileViewer>
           <PromptForm
             onSubmit={submitMessage}
             input={input}
