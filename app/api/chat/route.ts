@@ -45,16 +45,37 @@ export async function POST(req: Request) {
           runResult.required_action.submit_tool_outputs.tool_calls.map(
             (toolCall: any) => {
               const parameters = JSON.parse(toolCall.function.arguments);
-
-              switch (toolCall.function.name) {
+              console.log(toolCall.function.name)
+              if (toolCall.function.name === 'getCurrentTemperature') {
+                  return {
+                    tool_call_id: toolCall.id,
+                    output: "57",
+                  };
+              } else if (toolCall.function.name === 'getRainProbability') {
+                return {
+                  tool_call_id: toolCall.id,
+                  output: "57",
+                }
+              }
                 // configure your tool calls here
-
-                default:
+                // case toolCall.function.name === 'getCurrentTemperature': {
+                //   return {
+                //     tool_call_id: toolCall.id,
+                //     output: "57",
+                //   };
+                // }
+                // case toolCall.function.name === 'getRainProbability': {
+                //   return {
+                //     tool_call_id: toolCall.id,
+                //     output: "0.06",
+                //   };
+                // }
+                else {
                   throw new Error(
                     `Unknown tool call function: ${toolCall.function.name}`,
                   );
+                }
               }
-            },
           );
 
         runResult = await forwardStream(
