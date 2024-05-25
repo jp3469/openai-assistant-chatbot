@@ -85,15 +85,15 @@ export async function GET() {
 }
 
 // delete file from assistant's vector store
-export async function DELETE(req: { json: () => any; }) {
-  const body = await req.json();
-  const fileId = body.fileId;
+// export async function DELETE(req: { json: () => any; }) {
+//   const body = await req.json();
+//   const fileId = body.fileId;
 
-  const vectorStoreId = await getOrCreateVectorStore(); // get or create vector store
-  await openai.beta.vectorStores.files.del(vectorStoreId, fileId); // delete file from vector store
+//   const vectorStoreId = await getOrCreateVectorStore(); // get or create vector store
+//   await openai.beta.vectorStores.files.del(vectorStoreId, fileId); // delete file from vector store
 
-  return new Response();
-}
+//   return new Response();
+// }
 
 /* Helper functions */
 
