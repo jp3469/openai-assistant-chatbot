@@ -1,5 +1,5 @@
 import updateAssistant from "./util"
 
-export async function UPDATE(req: Request) {
+export async function PUT(req: Request) {
     updateAssistant()
 }
