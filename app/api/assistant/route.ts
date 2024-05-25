@@ -67,6 +67,9 @@ export async function updateAssistant() {
                 required: ["location"],
             },
             },
+        },
+        {
+            type: "file_search"
         }
         ],
     });
