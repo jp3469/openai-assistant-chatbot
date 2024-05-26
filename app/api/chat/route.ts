@@ -1,5 +1,6 @@
 import { AssistantResponse, tool } from 'ai';
 import OpenAI from 'openai';
+import { auth } from '@/auth'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -14,6 +15,13 @@ export async function POST(req: Request) {
     threadId: string | null;
     message: string;
   } = await req.json();
+  console.log(input);
+  const userId = (await auth())?.user.id
+  if (!userId) {
+    return new Response('Unauthorized', {
+      status: 401
+    })
+  }
 
   // Create a thread if needed
   const threadId = input.threadId ?? (await openai.beta.threads.create({})).id;

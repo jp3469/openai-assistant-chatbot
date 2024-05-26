@@ -1,6 +1,6 @@
 'use client'
 
-import { useAssistant, type Message } from 'ai/react'
+import { useAssistant, type Message, useChat } from 'ai/react'
 
 import { cn } from '@/lib/utils'
 import { ChatList } from '@/components/chat-list'
@@ -16,11 +16,12 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
-import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
+import { AssistantStatus } from 'ai'
+import saveChat from '@/app/api/chat/util'
 
 const IS_PREVIEW = process.env.VERCEL_ENV === 'preview'
 export interface ChatProps extends React.ComponentProps<'div'> {
@@ -39,13 +40,34 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
   const [previewTokenInput, setPreviewTokenInput] = useState(previewToken ?? '')
   const { status, messages, input, submitMessage, handleInputChange, setInput } =
     useAssistant({ api: '/api/chat' });
-  
+  const prevStatusRef = useRef<AssistantStatus>('awaiting_message');
+  useEffect(() => {
+    // Store the current status in a ref to compare later
+    const prevStatus = prevStatusRef.current;
+    
+    // Check if the last status was 'completed' and current is 'in_progress', or vice versa
+    if (prevStatus === 'in_progress' && status === 'awaiting_message') {
+      console.log('Status changed:', prevStatus, '->', status);
+      console.log('Messages:', messages);
+      saveChat(id, messages)
+    }
+    
+    // Update the ref with the new status for the next effect run
+    prevStatusRef.current = status;
+    
+    // This useEffect hook should rerun every time the `status` value changes.
+  }, [status, messages, id]);
+  const [messagesWithInitial, setMessagesWithInitial] = useState<Message[]>(initialMessages || [])
+  useEffect(() => {
+    setMessagesWithInitial([...initialMessages || [], ...messages])
+  }, [initialMessages, messages])
+
   return (
     <>
       <div className={cn('pb-[200px] pt-4 md:pt-10', className)}>
-        {messages.length ? (
+        {messagesWithInitial.length ? (
           <>
-            <ChatList messages={messages} />
+            <ChatList messages={messagesWithInitial} />
             <ChatScrollAnchor trackVisibility={ status == 'in_progress' } />
           </>
         ) : (
@@ -57,7 +79,7 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
         status={status}
         submitMessage={submitMessage} 
         handleInputChange={handleInputChange}
-        messages={messages}
+        messages={messagesWithInitial}
         input={input}
         setInput={setInput}
       />

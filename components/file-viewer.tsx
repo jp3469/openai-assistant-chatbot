@@ -1,6 +1,7 @@
-// @ts-nocheck
 import React, { useState, useEffect } from "react";
 import styles from "./file-viewer.module.css";
+import { cn } from '@/lib/utils'
+import { buttonVariants } from '@/components/ui/button'
 
 const TrashIcon = () => (
   <svg
@@ -20,7 +21,7 @@ const TrashIcon = () => (
 );
 
 const FileViewer = () => {
-  const [files, setFiles] = useState([]);
+  const [files, setFiles] = useState<{file_id: string, filename: string, status: string}[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -47,12 +48,11 @@ const FileViewer = () => {
     });
   };
 
-  const handleFileUpload = async (event: { target: { files: string | any[]; }; }) => {
-    console.log(event)
+  //@ts-ignore
+  const handleFileUpload = async (event) => {
     const data = new FormData();
     if (event.target.files.length < 0) return;
     data.append("file", event.target.files[0]);
-    console.log(data)
     await fetch("/api/files", {
       method: "POST",
       body: data,
@@ -83,7 +83,7 @@ const FileViewer = () => {
         )}
       </div>
       <div className={styles.fileUploadContainer}>
-        <label htmlFor="file-upload" className={styles.fileUploadBtn}>
+        <label htmlFor="file-upload" className={cn(buttonVariants())}>
           Attach files
         </label>
         <input
