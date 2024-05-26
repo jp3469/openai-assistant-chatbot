@@ -32,12 +32,10 @@ const FileViewer = () => {
   }, []);
 
   const fetchFiles = async () => {
-    console.log('calling fetchFiles')
     const resp = await fetch("/api/files", {
       method: "GET",
     });
     const data = await resp.json();
-    console.log(data)
     setFiles(data);
   };
 

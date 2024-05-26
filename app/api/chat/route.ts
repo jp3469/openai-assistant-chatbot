@@ -15,7 +15,6 @@ export async function POST(req: Request) {
     threadId: string | null;
     message: string;
   } = await req.json();
-  console.log(input);
   const userId = (await auth())?.user.id
   if (!userId) {
     return new Response('Unauthorized', {
@@ -56,7 +55,6 @@ export async function POST(req: Request) {
           runResult.required_action.submit_tool_outputs.tool_calls.map(
             (toolCall: any) => {
               const parameters = JSON.parse(toolCall.function.arguments);
-              console.log(toolCall.function.name)
               if (toolCall.function.name === 'getCurrentTemperature') {
                   return {
                     tool_call_id: toolCall.id,

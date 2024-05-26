@@ -47,8 +47,6 @@ export function Chat({ id, initialMessages, className }: ChatProps) {
     
     // Check if the last status was 'completed' and current is 'in_progress', or vice versa
     if (prevStatus === 'in_progress' && status === 'awaiting_message') {
-      console.log('Status changed:', prevStatus, '->', status);
-      console.log('Messages:', messages);
       saveChat(id, messages)
     }
     
